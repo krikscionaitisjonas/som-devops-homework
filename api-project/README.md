@@ -37,3 +37,17 @@ uv run python main.py
 - Centralized logging configuration
 - Global error handlers for validation, HTTP errors, and unhandled exceptions
 
+## Code quality checks
+
+Run lint:
+
+```bash
+uv run ruff check .
+```
+
+Run type checks:
+
+```bash
+uv run mypy app main.py
+```
+
