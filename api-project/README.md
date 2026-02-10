@@ -51,3 +51,10 @@ Run type checks:
 uv run mypy app main.py
 ```
 
+## Included in Phase 3
+
+- In-memory persistence in `app/repositories/memory_store.py`
+- ServiceOrder business service in `app/services/service_order_service.py`
+- TMF641-style filtering and `fields` projection in `app/services/query_service.py`
+- Repository support for both ServiceOrder and Hub listener records
+
