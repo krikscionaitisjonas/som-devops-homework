@@ -2,6 +2,16 @@
 
 FastAPI demo implementation of TMF641 Service Ordering Management API (REST), intended for local demonstration and tooling exercises.
 
+## Prerequisites
+
+- `uv` installed on the machine
+- Python `3.11+` available
+
+Install `uv`:
+
+- macOS/Linux: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+- Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+
 ## Quick start
 
 1. Install dependencies:
@@ -66,15 +76,15 @@ Artifacts:
 
 Run flow:
 
-1. Start server (`uvicorn` command above).
-2. Import collection JSON into Postman.
-3. Optionally import/select environment JSON.
-4. Run collection `TMF641 Service Ordering Demo`.
+1. Start server (`uvicorn` command above)
+2. Import collection JSON into Postman
+3. Optionally import/select environment JSON
+4. Run collection `TMF641 Service Ordering Demo`
 
 Notes:
 
-- The collection is runnable even without selecting an environment (collection variables are included).
-- If environment is selected, it can override values like `baseUrl` and callback URL.
+- The collection is runnable even without selecting an environment (collection variables are included)
+- If environment is selected, it can override values like `baseUrl` and callback URL
 
 ## What the Postman suite demonstrates
 
@@ -83,26 +93,22 @@ Notes:
 - negative cases (`400`, `404`, non-patchable fields)
 - notification emission attempts on create/patch/delete
 
-## TMF641 coverage assessment
+## TMF641 coverage and scope
 
 Implemented in this demo:
 
-- Service order operations: `GET/POST/PATCH/DELETE /serviceOrder` and `GET /serviceOrder/{id}`.
-- Listener management: `POST /hub`, `DELETE /hub/{id}`.
-- Notification payload shape: TMF-style `eventId`, `eventTime`, `eventType`, `event.serviceOrder`.
-- Notification delivery: outbound POST to registered callback URL (best-effort).
+- Service order operations: `GET/POST/PATCH/DELETE /serviceOrder` and `GET /serviceOrder/{id}`
+- Listener management: `POST /hub`, `DELETE /hub/{id}`
+- Notification payload shape: TMF-style `eventId`, `eventTime`, `eventType`, `event.serviceOrder`
+- Notification delivery: outbound POST to registered callback URL (best-effort)
 
-Not implemented as inbound route:
+Not implemented:
 
-- `/client/listener` is not exposed by this API because in TMF examples it is the consumer callback endpoint, not the provider management endpoint.
-
-## Known limitations
-
-- In-memory storage only (no persistence)
-- Partial TMF641 conformance (not all optional attributes/rules)
-- `PATCH` supports merge-patch only (json-patch not enabled)
-- Notification delivery is best-effort (no retries/queue)
-- No auth
+- Inbound `/client/listener` route (TMF examples describe this as the consumer callback endpoint)
+- Persistent storage (in-memory only)
+- Full strict TMF641 conformance for all optional attributes/rules
+- `application/json-patch+json` support (only merge-patch is enabled)
+- Guaranteed/retried notification delivery and authentication
 
 ## Quality checks
 
