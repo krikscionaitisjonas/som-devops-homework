@@ -22,6 +22,14 @@ from app.models.enums import (
     ServiceStateType,
 )
 from app.models.hub import Hub, HubCreate, HubRef
+from app.models.notifications import (
+    ServiceOrderAttributeValueChangeNotification,
+    ServiceOrderCreateNotification,
+    ServiceOrderDeleteNotification,
+    ServiceOrderEvent,
+    ServiceOrderNotification,
+    ServiceOrderStateChangeNotification,
+)
 from app.models.service_order import (
     ServiceOrder,
     ServiceOrderCreate,
@@ -45,17 +53,23 @@ __all__ = [
     "HubCreate",
     "HubRef",
     "ServiceOrderActionType",
+    "ServiceOrderAttributeValueChangeNotification",
     "ServiceOrderCreate",
+    "ServiceOrderCreateNotification",
     "ServiceOrderCreateResponse",
+    "ServiceOrderDeleteNotification",
+    "ServiceOrderEvent",
     "ServiceOrderItem",
     "ServiceOrderItemCreate",
     "ServiceOrderItemStateType",
     "ServiceOrderItemRelationship",
     "ServiceOrderItemPatch",
+    "ServiceOrderNotification",
     "ServiceOrderPatch",
     "ServiceOrderPatchResponse",
     "ServiceOrder",
     "ServiceOrderRelationship",
+    "ServiceOrderStateChangeNotification",
     "ServiceOrderStateType",
     "ServiceRestriction",
     "ServiceRef",

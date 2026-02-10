@@ -72,3 +72,10 @@ uv run mypy app main.py
 - Router wiring in `app/main.py`
 - Exception-to-HTTP mapping in `app/error_handlers.py` for custom service errors
 
+## Included in Phase 5
+
+- TMF641 notification models in `app/models/notifications.py`
+- Notification emission service in `app/services/notification_service.py`
+- ServiceOrder lifecycle events emitted on create/patch/delete
+- Best-effort publish to registered `/hub` listener callbacks via HTTP POST
+

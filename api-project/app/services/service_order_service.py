@@ -8,14 +8,21 @@ from typing import Any
 from app.models.enums import ServiceOrderItemStateType, ServiceOrderStateType
 from app.models.service_order import ServiceOrder, ServiceOrderCreate, ServiceOrderPatch
 from app.repositories.memory_store import InMemoryStore
+from app.services.notification_service import NotificationService
 from app.services.query_service import apply_order_filters, project_order, project_orders
 from app.utils.errors import NotFoundError
 
 
 class ServiceOrderService:
-    def __init__(self, store: InMemoryStore, resource_path: str = "/serviceOrder") -> None:
+    def __init__(
+        self,
+        store: InMemoryStore,
+        resource_path: str = "/serviceOrder",
+        notification_service: NotificationService | None = None,
+    ) -> None:
         self._store = store
         self._resource_path = resource_path.rstrip("/") or "/serviceOrder"
+        self._notification_service = notification_service
 
     def create_service_order(
         self, payload: ServiceOrderCreate, fields: list[str] | None = None
@@ -42,6 +49,10 @@ class ServiceOrderService:
 
         created_order = ServiceOrder.model_validate(payload_data)
         persisted_order = self._store.create_service_order(created_order)
+
+        if self._notification_service is not None:
+            self._notification_service.emit_service_order_create(persisted_order)
+
         return project_order(persisted_order, fields)
 
     def list_service_orders(
@@ -65,6 +76,7 @@ class ServiceOrderService:
         service_order = self._store.get_service_order(service_order_id)
         if service_order is None:
             raise NotFoundError(f"ServiceOrder with id '{service_order_id}' was not found.")
+        previous_state = service_order.state
 
         patch_model = ServiceOrderPatch.model_validate(
             payload, context={"order_state": service_order.state}
@@ -81,6 +93,7 @@ class ServiceOrderService:
 
             updated_order = ServiceOrder.model_validate(merged_data)
             service_order = self._store.update_service_order(updated_order)
+            self._emit_patch_notifications(previous_state=previous_state, current=service_order)
 
         return {
             "id": _required_value(service_order.id, "id"),
@@ -88,9 +101,27 @@ class ServiceOrderService:
         }
 
     def delete_service_order(self, service_order_id: str) -> None:
+        service_order = self._store.get_service_order(service_order_id)
+        if service_order is None:
+            raise NotFoundError(f"ServiceOrder with id '{service_order_id}' was not found.")
+
         deleted = self._store.delete_service_order(service_order_id)
         if not deleted:
             raise NotFoundError(f"ServiceOrder with id '{service_order_id}' was not found.")
+        if self._notification_service is not None:
+            self._notification_service.emit_service_order_delete(service_order)
+
+    def _emit_patch_notifications(
+        self,
+        previous_state: ServiceOrderStateType | None,
+        current: ServiceOrder,
+    ) -> None:
+        if self._notification_service is None:
+            return
+
+        self._notification_service.emit_service_order_attribute_value_change(current)
+        if current.state != previous_state:
+            self._notification_service.emit_service_order_state_change(current)
 
 
 def _required_value(value: str | None, field_name: str) -> str:
@@ -134,7 +165,11 @@ def _merge_patch(target: Any, patch: Any) -> Any:
 
 
 _store = InMemoryStore()
-_service_order_service = ServiceOrderService(store=_store)
+_notification_service = NotificationService(store=_store)
+_service_order_service = ServiceOrderService(
+    store=_store,
+    notification_service=_notification_service,
+)
 
 
 def get_store() -> InMemoryStore:
@@ -143,4 +178,8 @@ def get_store() -> InMemoryStore:
 
 def get_service_order_service() -> ServiceOrderService:
     return _service_order_service
+
+
+def get_notification_service() -> NotificationService:
+    return _notification_service
 
