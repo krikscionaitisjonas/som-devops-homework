@@ -1,5 +1,6 @@
 """Business services for TMF641 demo."""
 
+from app.services.hub_service import HubService, get_hub_service
 from app.services.query_service import (
     apply_order_filters,
     parse_fields,
@@ -13,8 +14,10 @@ from app.services.service_order_service import (
 )
 
 __all__ = [
+    "HubService",
     "ServiceOrderService",
     "apply_order_filters",
+    "get_hub_service",
     "get_service_order_service",
     "get_store",
     "parse_fields",

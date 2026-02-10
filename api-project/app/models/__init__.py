@@ -21,6 +21,7 @@ from app.models.enums import (
     ServiceOrderStateType,
     ServiceStateType,
 )
+from app.models.hub import Hub, HubCreate, HubRef
 from app.models.service_order import (
     ServiceOrder,
     ServiceOrderCreate,
@@ -40,6 +41,9 @@ __all__ = [
     "Place",
     "RelatedParty",
     "ResourceRef",
+    "Hub",
+    "HubCreate",
+    "HubRef",
     "ServiceOrderActionType",
     "ServiceOrderCreate",
     "ServiceOrderCreateResponse",

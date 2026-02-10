@@ -5,6 +5,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.health import router as health_router
+from app.api.routes_hub import router as hub_router
+from app.api.routes_service_order import router as service_order_router
 from app.error_handlers import register_error_handlers
 from app.logging_config import configure_logging
 from app.settings import get_settings
@@ -29,6 +31,8 @@ app = FastAPI(
 
 register_error_handlers(app)
 app.include_router(health_router)
+app.include_router(service_order_router)
+app.include_router(hub_router)
 
 
 @app.get("/", tags=["Meta"], summary="Root endpoint")

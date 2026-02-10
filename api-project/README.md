@@ -29,6 +29,13 @@ uv run python main.py
 
 - `GET /` - project metadata
 - `GET /health` - service health status
+- `GET /serviceOrder` - list service orders (supports filters and `fields`)
+- `GET /serviceOrder/{id}` - retrieve a service order
+- `POST /serviceOrder` - create a service order
+- `PATCH /serviceOrder/{id}` - patch service order (merge-patch)
+- `DELETE /serviceOrder/{id}` - delete a service order
+- `POST /hub` - register listener callback endpoint
+- `DELETE /hub/{id}` - unregister listener
 - `GET /docs` - Swagger UI
 
 ## Included in Phase 1.3
@@ -57,4 +64,11 @@ uv run mypy app main.py
 - ServiceOrder business service in `app/services/service_order_service.py`
 - TMF641-style filtering and `fields` projection in `app/services/query_service.py`
 - Repository support for both ServiceOrder and Hub listener records
+
+## Included in Phase 4
+
+- FastAPI route layer for ServiceOrder in `app/api/routes_service_order.py`
+- FastAPI route layer for Hub in `app/api/routes_hub.py`
+- Router wiring in `app/main.py`
+- Exception-to-HTTP mapping in `app/error_handlers.py` for custom service errors
 
