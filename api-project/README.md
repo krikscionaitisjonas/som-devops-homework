@@ -55,7 +55,7 @@ uv run ruff check .
 Run type checks:
 
 ```bash
-uv run mypy app main.py
+uv run mypy .
 ```
 
 Run tests:
@@ -85,4 +85,19 @@ uv run pytest
 - ServiceOrder lifecycle events emitted on create/patch/delete
 - Best-effort publish to registered `/hub` listener callbacks via HTTP POST
 - Comprehensive pytest suite in `tests/` for ServiceOrder, Hub, and notifications
+
+## Phase 6 - Postman demo artifacts
+
+- Collection: `postman/TMF641_Demo.postman_collection.json`
+- Environment: `postman/TMF641_Demo.postman_environment.json`
+
+Demo flow:
+
+1. Start API server:
+   ```bash
+   uv run uvicorn app.main:app --reload --port 8080
+   ```
+2. Import both Postman JSON files.
+3. Select environment `TMF641 Demo Local`.
+4. Run collection `TMF641 Service Ordering Demo`.
 

@@ -1,0 +1,505 @@
+{
+  "info": {
+    "_postman_id": "7d13a7ef-3f31-4ba9-b76b-e7775f4de047",
+    "name": "TMF641 Service Ordering Demo",
+    "description": "End-to-end demo collection for TMF641 Service Ordering API homework.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Health Check",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Health payload contains expected fields\", function () {",
+              "    pm.expect(jsonData).to.have.property(\"status\", \"ok\");",
+              "    pm.expect(jsonData).to.have.property(\"service\");",
+              "    pm.expect(jsonData).to.have.property(\"version\");",
+              "    pm.expect(jsonData).to.have.property(\"timestamp\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/health",
+        "description": "Sanity check before running the full flow."
+      },
+      "response": []
+    },
+    {
+      "name": "02 - Register Hub Listener",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Hub response contains id and callback\", function () {",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "    pm.expect(jsonData).to.have.property(\"callback\");",
+              "});",
+              "",
+              "pm.environment.set(\"hubId\", jsonData.id);",
+              "pm.test(\"Location header is set\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Location\")).to.eql(\"/hub/\" + jsonData.id);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"callback\": \"{{listenerCallback}}\"\n}"
+        },
+        "url": "{{baseUrl}}/hub",
+        "description": "Registers a callback endpoint for TMF641 notifications."
+      },
+      "response": []
+    },
+    {
+      "name": "03 - Create ServiceOrder - valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Create response contains core TMF fields\", function () {",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "    pm.expect(jsonData).to.have.property(\"href\");",
+              "    pm.expect(jsonData).to.have.property(\"state\", \"acknowledged\");",
+              "    pm.expect(jsonData).to.have.property(\"orderDate\");",
+              "});",
+              "",
+              "pm.environment.set(\"orderId\", jsonData.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"externalId\": \"OrangeBSS748\",\n  \"priority\": \"1\",\n  \"description\": \"Service order description\",\n  \"category\": \"{{serviceCategory}}\",\n  \"requestedStartDate\": \"2026-02-10T09:37:40.508Z\",\n  \"requestedCompletionDate\": \"2026-02-12T09:37:40.508Z\",\n  \"@type\": \"ServiceOrder\",\n  \"orderItem\": [\n    {\n      \"id\": \"1\",\n      \"action\": \"add\",\n      \"service\": {\n        \"serviceType\": \"CFS\"\n      }\n    }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/serviceOrder",
+        "description": "Creates a service order with minimum mandatory TMF641 fields."
+      },
+      "response": []
+    },
+    {
+      "name": "04 - List ServiceOrders",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Response is an array\", function () {",
+              "    pm.expect(Array.isArray(jsonData)).to.eql(true);",
+              "});",
+              "",
+              "pm.test(\"At least one service order exists\", function () {",
+              "    pm.expect(jsonData.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder",
+        "description": "Returns all service orders."
+      },
+      "response": []
+    },
+    {
+      "name": "05 - List ServiceOrders - with filtering",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "const expectedCategory = pm.environment.get(\"serviceCategory\");",
+              "pm.test(\"Response is an array\", function () {",
+              "    pm.expect(Array.isArray(jsonData)).to.eql(true);",
+              "});",
+              "",
+              "jsonData.forEach(function (item) {",
+              "    pm.expect(item.category).to.eql(expectedCategory);",
+              "    pm.expect(item.state).to.eql(\"acknowledged\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder?state=acknowledged&category={{serviceCategory}}",
+        "description": "Filters service orders using TMF-style query parameters."
+      },
+      "response": []
+    },
+    {
+      "name": "06 - Retrieve ServiceOrder by id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Retrieved id matches environment orderId\", function () {",
+              "    pm.expect(jsonData.id).to.eql(pm.environment.get(\"orderId\"));",
+              "});",
+              "",
+              "pm.test(\"Resource contains orderItem\", function () {",
+              "    pm.expect(jsonData).to.have.property(\"orderItem\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}",
+        "description": "Retrieves one service order by id."
+      },
+      "response": []
+    },
+    {
+      "name": "07 - Patch ServiceOrder - valid",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Patch response contains id/href\", function () {",
+              "    pm.expect(jsonData).to.have.property(\"id\", pm.environment.get(\"orderId\"));",
+              "    pm.expect(jsonData).to.have.property(\"href\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/merge-patch+json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"description\": \"{{patchedDescription}}\"\n}"
+        },
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}",
+        "description": "Applies RFC7386 merge patch to allowed attributes."
+      },
+      "response": []
+    },
+    {
+      "name": "08 - Retrieve ServiceOrder after patch",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Description was updated\", function () {",
+              "    pm.expect(jsonData.description).to.eql(pm.environment.get(\"patchedDescription\"));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}?fields=id,description",
+        "description": "Verifies updated value after patch."
+      },
+      "response": []
+    },
+    {
+      "name": "09 - Patch ServiceOrder - forbidden field",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Error code is INVALID_REQUEST\", function () {",
+              "    pm.expect(jsonData.code).to.eql(\"INVALID_REQUEST\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/merge-patch+json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"priority\": \"2\"\n}"
+        },
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}",
+        "description": "Demonstrates non-patchable field validation."
+      },
+      "response": []
+    },
+    {
+      "name": "10 - Create ServiceOrder - invalid (missing orderItem)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 400\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Error code is INVALID_REQUEST\", function () {",
+              "    pm.expect(jsonData.code).to.eql(\"INVALID_REQUEST\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"externalId\": \"invalid-missing-order-item\",\n  \"description\": \"Invalid request demo\"\n}"
+        },
+        "url": "{{baseUrl}}/serviceOrder",
+        "description": "Negative case: required orderItem field omitted."
+      },
+      "response": []
+    },
+    {
+      "name": "11 - Delete ServiceOrder - existing",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}",
+        "description": "Deletes the created service order."
+      },
+      "response": []
+    },
+    {
+      "name": "12 - Delete ServiceOrder - not found",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 404\", function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "const jsonData = pm.response.json();",
+              "pm.test(\"Error code is NOT_FOUND\", function () {",
+              "    pm.expect(jsonData.code).to.eql(\"NOT_FOUND\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/serviceOrder/{{orderId}}",
+        "description": "Negative case after deletion."
+      },
+      "response": []
+    },
+    {
+      "name": "13 - Delete Hub Listener",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 204\", function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/hub/{{hubId}}",
+        "description": "Unregisters callback listener."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8080"
+    }
+  ]
+}
+
