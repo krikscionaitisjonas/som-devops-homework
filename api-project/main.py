@@ -1,9 +1,17 @@
 import uvicorn
 
+from app.settings import get_settings
+
 
 def main() -> None:
     """Local launcher for development."""
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8080, reload=True)
+    settings = get_settings()
+    uvicorn.run(
+        "app.main:app",
+        host=settings.host,
+        port=settings.port,
+        reload=settings.reload,
+    )
 
 
 if __name__ == "__main__":
