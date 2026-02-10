@@ -1,20 +1,32 @@
-# TMF641 API Project
+# TMF641 Service Ordering Demo API
 
-Minimal FastAPI skeleton for TMF641 Service Ordering homework.
+FastAPI demo implementation of TMF641 Service Ordering Management API (REST), intended for local demonstration and tooling exercises.
 
-## Run
+## Quick start
+
+1. Install dependencies:
+
+```bash
+uv sync
+```
+
+2. Run API server:
 
 ```bash
 uv run uvicorn app.main:app --reload --port 8080
 ```
 
-or:
+Alternative launcher:
 
 ```bash
 uv run python main.py
 ```
 
-## Optional environment variables
+3. Open docs:
+- Swagger UI: `http://127.0.0.1:8080/docs`
+- Health: `http://127.0.0.1:8080/health`
+
+## Environment variables
 
 - `APP_NAME` (default: `TMF641 Service Ordering Demo`)
 - `APP_VERSION` (default: `0.1.0`)
@@ -25,79 +37,78 @@ uv run python main.py
 - `APP_RELOAD` (`true`/`false`; default: `true`)
 - `APP_LOG_LEVEL` (`DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`; default: `INFO`)
 
-## Endpoints
+## Implemented endpoints
 
-- `GET /` - project metadata
-- `GET /health` - service health status
-- `GET /serviceOrder` - list service orders (supports filters and `fields`)
-- `GET /serviceOrder/{id}` - retrieve a service order
-- `POST /serviceOrder` - create a service order
-- `PATCH /serviceOrder/{id}` - patch service order (merge-patch)
-- `DELETE /serviceOrder/{id}` - delete a service order
-- `POST /hub` - register listener callback endpoint
-- `DELETE /hub/{id}` - unregister listener
-- `GET /docs` - Swagger UI
+### ServiceOrder operations
 
-## Included in Phase 1.3
+- `GET /serviceOrder`
+- `GET /serviceOrder/{id}`
+- `POST /serviceOrder`
+- `PATCH /serviceOrder/{id}`
+- `DELETE /serviceOrder/{id}`
 
-- Base settings from environment variables
-- Centralized logging configuration
-- Global error handlers for validation, HTTP errors, and unhandled exceptions
+### Notification subscription operations
 
-## Code quality checks
+- `POST /hub`
+- `DELETE /hub/{id}`
 
-Run lint:
+### Utility endpoints
+
+- `GET /`
+- `GET /health`
+
+## Run with Postman
+
+Artifacts:
+
+- Collection: `postman/TMF641_Demo.postman_collection.json`
+- Environment (optional): `postman/TMF641_Demo.postman_environment.json`
+
+Run flow:
+
+1. Start server (`uvicorn` command above).
+2. Import collection JSON into Postman.
+3. Optionally import/select environment JSON.
+4. Run collection `TMF641 Service Ordering Demo`.
+
+Notes:
+
+- The collection is runnable even without selecting an environment (collection variables are included).
+- If environment is selected, it can override values like `baseUrl` and callback URL.
+
+## What the Postman suite demonstrates
+
+- service order create/list/filter/retrieve/patch/delete flow
+- hub register/unregister flow
+- negative cases (`400`, `404`, non-patchable fields)
+- notification emission attempts on create/patch/delete
+
+## TMF641 coverage assessment
+
+Implemented in this demo:
+
+- Service order operations: `GET/POST/PATCH/DELETE /serviceOrder` and `GET /serviceOrder/{id}`.
+- Listener management: `POST /hub`, `DELETE /hub/{id}`.
+- Notification payload shape: TMF-style `eventId`, `eventTime`, `eventType`, `event.serviceOrder`.
+- Notification delivery: outbound POST to registered callback URL (best-effort).
+
+Not implemented as inbound route:
+
+- `/client/listener` is not exposed by this API because in TMF examples it is the consumer callback endpoint, not the provider management endpoint.
+
+## Known limitations
+
+- In-memory storage only (no persistence)
+- Partial TMF641 conformance (not all optional attributes/rules)
+- `PATCH` supports merge-patch only (json-patch not enabled)
+- Notification delivery is best-effort (no retries/queue)
+- No auth
+
+## Quality checks
 
 ```bash
 uv run ruff check .
-```
-
-Run type checks:
-
-```bash
 uv run mypy .
-```
-
-Run tests:
-
-```bash
 uv run pytest
 ```
-
-## Included in Phase 3
-
-- In-memory persistence in `app/repositories/memory_store.py`
-- ServiceOrder business service in `app/services/service_order_service.py`
-- TMF641-style filtering and `fields` projection in `app/services/query_service.py`
-- Repository support for both ServiceOrder and Hub listener records
-
-## Included in Phase 4
-
-- FastAPI route layer for ServiceOrder in `app/api/routes_service_order.py`
-- FastAPI route layer for Hub in `app/api/routes_hub.py`
-- Router wiring in `app/main.py`
-- Exception-to-HTTP mapping in `app/error_handlers.py` for custom service errors
-
-## Included in Phase 5
-
-- TMF641 notification models in `app/models/notifications.py`
-- Notification emission service in `app/services/notification_service.py`
-- ServiceOrder lifecycle events emitted on create/patch/delete
-- Best-effort publish to registered `/hub` listener callbacks via HTTP POST
-- Comprehensive pytest suite in `tests/` for ServiceOrder, Hub, and notifications
-
-## Phase 6 - Postman demo artifacts
-
-- Collection: `postman/TMF641_Demo.postman_collection.json`
-- Environment: `postman/TMF641_Demo.postman_environment.json`
-
-Demo flow:
-
-1. Start API server:
-   ```bash
-   uv run uvicorn app.main:app --reload --port 8080
-   ```
-2. Import both Postman JSON files.
-3. Select environment `TMF641 Demo Local`.
-4. Run collection `TMF641 Service Ordering Demo`.
 
