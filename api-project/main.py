@@ -1,5 +1,9 @@
-def main():
-    print("Hello from api-project!")
+import uvicorn
+
+
+def main() -> None:
+    """Local launcher for development."""
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8080, reload=True)
 
 
 if __name__ == "__main__":
