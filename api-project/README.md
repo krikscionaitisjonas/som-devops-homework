@@ -58,6 +58,12 @@ Run type checks:
 uv run mypy app main.py
 ```
 
+Run tests:
+
+```bash
+uv run pytest
+```
+
 ## Included in Phase 3
 
 - In-memory persistence in `app/repositories/memory_store.py`
@@ -78,4 +84,5 @@ uv run mypy app main.py
 - Notification emission service in `app/services/notification_service.py`
 - ServiceOrder lifecycle events emitted on create/patch/delete
 - Best-effort publish to registered `/hub` listener callbacks via HTTP POST
+- Comprehensive pytest suite in `tests/` for ServiceOrder, Hub, and notifications
 
