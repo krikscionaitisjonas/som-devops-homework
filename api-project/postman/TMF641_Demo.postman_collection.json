@@ -60,6 +60,7 @@
               "    pm.expect(jsonData).to.have.property(\"callback\");",
               "});",
               "",
+              "pm.collectionVariables.set(\"hubId\", jsonData.id);",
               "pm.environment.set(\"hubId\", jsonData.id);",
               "pm.test(\"Location header is set\", function () {",
               "    pm.expect(pm.response.headers.get(\"Location\")).to.eql(\"/hub/\" + jsonData.id);",
@@ -109,6 +110,7 @@
               "    pm.expect(jsonData).to.have.property(\"orderDate\");",
               "});",
               "",
+              "pm.collectionVariables.set(\"orderId\", jsonData.id);",
               "pm.environment.set(\"orderId\", jsonData.id);"
             ]
           }
@@ -185,7 +187,7 @@
               "});",
               "",
               "const jsonData = pm.response.json();",
-              "const expectedCategory = pm.environment.get(\"serviceCategory\");",
+              "const expectedCategory = pm.variables.get(\"serviceCategory\");",
               "pm.test(\"Response is an array\", function () {",
               "    pm.expect(Array.isArray(jsonData)).to.eql(true);",
               "});",
@@ -224,8 +226,8 @@
               "});",
               "",
               "const jsonData = pm.response.json();",
-              "pm.test(\"Retrieved id matches environment orderId\", function () {",
-              "    pm.expect(jsonData.id).to.eql(pm.environment.get(\"orderId\"));",
+              "pm.test(\"Retrieved id matches stored orderId\", function () {",
+              "    pm.expect(jsonData.id).to.eql(pm.variables.get(\"orderId\"));",
               "});",
               "",
               "pm.test(\"Resource contains orderItem\", function () {",
@@ -262,7 +264,7 @@
               "",
               "const jsonData = pm.response.json();",
               "pm.test(\"Patch response contains id/href\", function () {",
-              "    pm.expect(jsonData).to.have.property(\"id\", pm.environment.get(\"orderId\"));",
+              "    pm.expect(jsonData).to.have.property(\"id\", pm.variables.get(\"orderId\"));",
               "    pm.expect(jsonData).to.have.property(\"href\");",
               "});"
             ]
@@ -304,7 +306,7 @@
               "",
               "const jsonData = pm.response.json();",
               "pm.test(\"Description was updated\", function () {",
-              "    pm.expect(jsonData.description).to.eql(pm.environment.get(\"patchedDescription\"));",
+              "    pm.expect(jsonData.description).to.eql(pm.variables.get(\"patchedDescription\"));",
               "});"
             ]
           }
@@ -499,6 +501,26 @@
     {
       "key": "baseUrl",
       "value": "http://127.0.0.1:8080"
+    },
+    {
+      "key": "listenerCallback",
+      "value": "http://127.0.0.1:9999/client/listener"
+    },
+    {
+      "key": "serviceCategory",
+      "value": "TMF resource illustration"
+    },
+    {
+      "key": "patchedDescription",
+      "value": "Service order patched via Postman"
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "hubId",
+      "value": ""
     }
   ]
 }
