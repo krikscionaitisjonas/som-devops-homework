@@ -1,0 +1,118 @@
+---
+- name: Deploy packaged app to Linux servers
+  hosts: app_servers
+  become: true
+  gather_facts: true
+
+  vars:
+    user_home: "/home/{{ username }}"
+    app_root_dir: "{{ user_home }}/{{ appname }}"
+    archive_name: "{{ url | basename }}"
+    archive_path: "/tmp/{{ archive_name }}"
+    app_log_path: "{{ app_root_dir }}/{{ appname }}.log"
+
+  pre_tasks:
+    - name: Validate required input variables
+      ansible.builtin.assert:
+        that:
+          - username is defined
+          - username | trim | length > 0
+          - appname is defined
+          - appname | trim | length > 0
+          - url is defined
+          - url | trim | length > 0
+        fail_msg: >-
+          Missing required variables. Run with:
+          -e "username=<linux_user> appname=<app_name> url=<archive_url>"
+
+  tasks:
+    - name: Create deployment user
+      ansible.builtin.user:
+        name: "{{ username }}"
+        state: present
+        create_home: true
+        shell: /bin/bash
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ app_root_dir }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: "0755"
+
+    - name: Download package archive to remote host
+      ansible.builtin.get_url:
+        url: "{{ url }}"
+        dest: "{{ archive_path }}"
+        mode: "0644"
+      register: package_download_result
+
+    - name: Find existing startup script before extraction
+      ansible.builtin.find:
+        paths: "{{ app_root_dir }}"
+        patterns: "{{ appname }}.sh"
+        recurse: true
+        file_type: file
+      register: existing_startup_script_result
+
+    - name: Extract package to application directory
+      ansible.builtin.unarchive:
+        src: "{{ archive_path }}"
+        dest: "{{ app_root_dir }}"
+        remote_src: true
+        owner: "{{ username }}"
+        group: "{{ username }}"
+      when:
+        - package_download_result.changed or existing_startup_script_result.matched == 0
+
+    - name: Find startup script in extracted package
+      ansible.builtin.find:
+        paths: "{{ app_root_dir }}"
+        patterns: "{{ appname }}.sh"
+        recurse: true
+        file_type: file
+      register: startup_script_result
+
+    - name: Fail when startup script is missing
+      ansible.builtin.fail:
+        msg: "Could not find {{ appname }}.sh under {{ app_root_dir }}."
+      when: startup_script_result.matched == 0
+
+    - name: Save startup script path
+      ansible.builtin.set_fact:
+        startup_script_path: "{{ startup_script_result.files[0].path }}"
+
+    - name: Ensure startup script is executable
+      ansible.builtin.file:
+        path: "{{ startup_script_path }}"
+        state: file
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: "0755"
+
+    - name: Check whether app is already running
+      ansible.builtin.command:
+        argv:
+          - pgrep
+          - -f
+          - "{{ startup_script_path }}"
+      register: app_process_check
+      check_mode: false
+      changed_when: false
+      failed_when: false
+
+    - name: Start app in background with nohup
+      ansible.builtin.command:
+        argv:
+          - sudo
+          - -u
+          - "{{ username }}"
+          - /bin/bash
+          - -lc
+          - "cd {{ startup_script_path | dirname | quote }} && nohup {{ startup_script_path | quote }} > {{ app_log_path | quote }} 2>&1 &"
+      when: app_process_check.rc != 0
+
+    - name: Show process state
+      ansible.builtin.debug:
+        msg: "{{ appname }} was {{ 'already running' if app_process_check.rc == 0 else 'started' }}. Startup script: {{ startup_script_path }}. Log: {{ app_log_path }}."
