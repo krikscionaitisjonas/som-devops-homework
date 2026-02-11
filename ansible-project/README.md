@@ -140,3 +140,16 @@ Example:
 - provide any reachable archive URL that contains that startup script
 
 The playbook searches recursively under `/home/<username>/<appname>` and uses the first match.
+
+
+## Validation Evidence
+
+Tested against 2 Linux hosts.
+
+- First run deploys user, downloads package, extracts, and starts app.
+- Second run is idempotent (`changed=0`).
+- Verification confirms user exists, app process is running, and heartbeat log is updating.
+
+![First run](docs/evidence/first-run.png)
+![Second run](docs/evidence/second-run.png)
+![Verification](docs/evidence/verification.png)
